@@ -70,8 +70,43 @@
       </div>
     </nav>
 
-    <main class="ps-0 ps-md-5"></main>
-    <h1>Welcome to Group ABC</h1>
+    <main class="ps-0 ps-md-5 flex-grow-1">
+      <h1>Welcome to Group ABC</h1>
+
+      <div class="container landing-page">
+        <h3>Ideas Repository</h3>
+        <br>
+        <div class="table-responsive">
+          <table class="table">
+            <tr>
+              <th>Date</th>
+              <th class="d-none d-sm-table-cell">Activity</th>
+              <th>Description</th>
+              <th id="delete-heading">Delete</th>
+            </tr>
+            <tr>
+
+              <td><a href="/note/1" style="color: darkslategray">
+                  Date
+                </a></td>
+
+              <td>
+                Activity
+              </td>
+              <td>
+                Description
+              </td>
+              <td>
+                <form id="delete-button" action="/note/1/delete?_method=DELETE" method="POST">
+                  <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
+                </form>
+              </td>
+            </tr>
+
+          </table>
+        </div>
+      </div>
+    </main>
   </div>
 
 

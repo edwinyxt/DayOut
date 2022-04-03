@@ -152,4 +152,18 @@ app.post('/create-group', (req, res) => {
 
 );
 
+app.get('/group/:id', (req, res) => {
+  const {id} = req.params;
+  res.render('single-group-home', {});
+});
+
+app.get('/group/:id/members', (req, res) => {});
+app.get('/group/:id/ideas', (req, res) => {
+  const {loggedIn} = req.cookies;
+  res.render('ideas', {loggedIn});
+});
+app.get('/group/:id/trips', (req, res) => {});
+app.get('/group/:id/trip/:date', (req, res) => {});
+app.get('/group/:id/archive', (req, res) => {});
+
 app.listen(3004);
