@@ -17,7 +17,62 @@
 </head>
 
 <body>
+  <div class="modal fade" id="creategroup-modal">
+    <div class="modal-dialog">
 
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1>Post an Idea</h1>
+        </div>
+        <div class="modal-body">
+          <form class="entry-form-container" action="/create-idea/<%= groupDetails.id %>" method="POST">
+            <div class="row">
+              <div class="row">
+                <div class="form-group">
+                  <label for="description">Description of Activity: </label>
+                  <input class="form-control" name="description" id="description">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="form-group">
+                  <label for="link">Link/URL: </label>
+                  <input class="form-control" name="link" id="link">
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group">
+                  <label for="location">Location: </label>
+                  <input class="form-control" name="location" id="location">
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group">
+                  <label for="start-date">Start date: </label>
+                  <input class="form-control" type="date" name="sdate" id="sdate" min="2015/01/01">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="form-group">
+                  <label for="end-date">End date: </label>
+                  <input class="form-control" type="date" name="edate" id="edate" min="2015/01/01">
+                </div>
+              </div>
+
+
+            </div>
+
+            <br><br>
+            <button type="submit" class="btn btn-secondary btn-block">Submit</button>
+          </form>
+        </div>
+        <div class="modal-footer"></div>
+
+      </div>
+    </div>
+
+  </div>
   <div class="container">
     <nav class="navbar navbar-expand-sm navbar-light bg-light">
 
@@ -105,6 +160,10 @@
 
           </table>
         </div>
+
+        <a href="#" data-toggle="modal" data-target="#creategroup-modal" class="btn btn-primary">Post an Idea</a>
+
+
       </div>
     </main>
   </div>

@@ -149,18 +149,51 @@ app.post('/create-group', (req, res) => {
   res.redirect('/groups');
 },
 
+app.post('/create-idea/:id', (req, res) => {
+  const groupId = Number(req.params.id);
+  const ideaData = req.body;
+  const inputData = [Number(req.cookies.userId), groupId, ideaData.description, ideaData.link, ideaData.location, ideaData.sdate, ideaData.edate];
+
+  console.log(inputData);
+
+  pool
+      .query('INSERT INTO events_repository (user_id, group_id, description, link, location, start_date, end_date) VALUES ($1, $2, $3,$4,$5,$6,$7) RETURNING id', inputData).then((result) => {
+        console.log(result.rows);
+      }).catch((error) => console.log(error.stack));
+
+  res.redirect(`/group/${groupId}/ideas`);
+}),
+
 
 );
 
 app.get('/group/:id', (req, res) => {
-  const {id} = req.params;
-  res.render('single-group-home', {});
+  // const {id} = req.params;
+  const groupId = Number(req.params.id);
+  const groupQuery = `SELECT * from groups where id = ${groupId}`;
+  pool.query(groupQuery, (groupQueryError, groupQueryResult)=>{
+    if (groupQueryError) {
+      console.log('error', groupQueryError);
+    } else {
+      const groupDetails = groupQueryResult.rows[0];
+      console.log('groupDetails', groupDetails);
+      res.render('single-group-home', {groupDetails});
+    }
+  });
 });
 
-app.get('/group/:id/members', (req, res) => {});
+app.get('/group/:id/members', (req, res) => {
+  const {loggedIn} = req.cookies;
+
+  res.render('group-members', {loggedIn});
+});
 app.get('/group/:id/ideas', (req, res) => {
   const {loggedIn} = req.cookies;
-  res.render('ideas', {loggedIn});
+  const groupId = Number(req.params.id);
+  const groupDetails = {};
+  groupDetails.id = groupId;
+
+  res.render('ideas', {groupDetails});
 });
 app.get('/group/:id/trips', (req, res) => {});
 app.get('/group/:id/trip/:date', (req, res) => {});

@@ -61,8 +61,8 @@
 
         <ul class="navbar-nav w-100 d-flex flex-md-column text-center text-md-end">
           <li> <a href="#" class="nav-link">Group Profile</a> </li>
-          <li> <a href="/group/<%= groupDetails.id %>/members" class="nav-link">Members</a> </li>
-          <li> <a href="/group/<%= groupDetails.id %>/ideas" class="nav-link">Ideas</a> </li>
+          <li> <a href="#" class="nav-link">Members</a> </li>
+          <li> <a href="#" class="nav-link">Ideas</a> </li>
           <li> <a href="#" class="nav-link">Trips</a> </li>
           <li> <a href="#" class="nav-link">History</a> </li>
         </ul>
@@ -70,9 +70,43 @@
       </div>
     </nav>
 
-    <main class="ps-0 ps-md-5"></main>
-    <h1>Welcome to Group <%= groupDetails.name %>
-    </h1>
+    <main class="ps-0 ps-md-5 flex-grow-1">
+      <h1>Welcome to Group ABC</h1>
+
+      <div class="container landing-page">
+        <h3>Members</h3>
+        <br>
+        <div class="table-responsive">
+          <table class="table">
+            <tr>
+              <th>Username</th>
+              <th class="d-none d-sm-table-cell">Email</th>
+              <th>Interests</th>
+              <th id="delete-heading">Delete</th>
+            </tr>
+            <tr>
+
+              <td><a href="/note/1" style="color: darkslategray">
+                  -
+                </a></td>
+
+              <td>
+                -
+              </td>
+              <td>
+                -
+              </td>
+              <td>
+                <form id="delete-button" action="/note/1/delete?_method=DELETE" method="POST">
+                  <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
+                </form>
+              </td>
+            </tr>
+
+          </table>
+        </div>
+      </div>
+    </main>
   </div>
 
 
