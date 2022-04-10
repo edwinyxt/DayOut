@@ -134,29 +134,44 @@
         <div class="table-responsive">
           <table class="table">
             <tr>
-              <th>Date</th>
-              <th class="d-none d-sm-table-cell">Activity</th>
               <th>Description</th>
+              <th class="d-none d-sm-table-cell">Location</th>
+
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Link</th>
               <th id="delete-heading">Delete</th>
             </tr>
-            <tr>
+            <% for (let i=0; i < allIdeas.length; i +=1) { %>
+              <tr>
+                <td>
+                  <%= allIdeas[i].description %>
+                </td>
 
-              <td><a href="/note/1" style="color: darkslategray">
-                  Date
-                </a></td>
+                <td>
+                  <%= allIdeas[i].location %>
+                </td>
+                <td>
+                  <%= allIdeas[i].start_date %>
+                </td>
+                <td>
+                  <%= allIdeas[i].end_date %>
+                </td>
 
-              <td>
-                Activity
-              </td>
-              <td>
-                Description
-              </td>
-              <td>
-                <form id="delete-button" action="/note/1/delete?_method=DELETE" method="POST">
-                  <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
-                </form>
-              </td>
-            </tr>
+                <td><a href="<%= allIdeas[i].link %>" style="color: darkslategray">
+                    Details
+                  </a></td>
+                <td>
+                  <form id="delete-button" action="/note/<%= allIdeas[i].id %>/delete?_method=DELETE" method="POST">
+                    <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
+                  </form>
+                </td>
+              </tr>
+              <% } %>
+
+
+
+
 
           </table>
         </div>

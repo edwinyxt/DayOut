@@ -53,7 +53,6 @@ app.get('/login', (req, res) => {
   res.render('login', {loggedIn});
 });
 
-// submits the login data
 app.post('/login', (req, res) => {
   pool.query(`SELECT * FROM users WHERE email = '${req.body.email}'`, (emailQueryError, emailQueryResult) => {
     if (emailQueryError) {
@@ -125,7 +124,6 @@ app.get('/groups', (req, res) => {
   };
 });
 
-
 app.post('/create-group', (req, res) => {
   const groupData = req.body;
   const inputData = [groupData.name, groupData.description];
@@ -147,7 +145,7 @@ app.post('/create-group', (req, res) => {
       })
       .catch((error) => console.log(error.stack));
   res.redirect('/groups');
-},
+});
 
 app.post('/create-idea/:id', (req, res) => {
   const groupId = Number(req.params.id);
@@ -163,9 +161,6 @@ app.post('/create-idea/:id', (req, res) => {
 
   res.redirect(`/group/${groupId}/ideas`);
 }),
-
-
-);
 
 app.get('/group/:id', (req, res) => {
   // const {id} = req.params;
@@ -183,20 +178,71 @@ app.get('/group/:id', (req, res) => {
 });
 
 app.get('/group/:id/members', (req, res) => {
-  const {loggedIn} = req.cookies;
+  // const {loggedIn} = req.cookies;
 
-  res.render('group-members', {loggedIn});
-});
-app.get('/group/:id/ideas', (req, res) => {
-  const {loggedIn} = req.cookies;
   const groupId = Number(req.params.id);
   const groupDetails = {};
   groupDetails.id = groupId;
 
-  res.render('ideas', {groupDetails});
+  const membersQuery = `select * from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId}`;
+  pool.query(membersQuery, (membersQueryError, membersQueryResult) => {
+    if (membersQueryError) {
+      console.log('error', membersQueryError);
+    } else {
+      console.log(membersQueryResult.rows);
+      const members = membersQueryResult.rows;
+      const {loggedIn} = req.cookies;
+      console.log('logged in?', loggedIn);
+      res.render('group-members', {members, groupDetails, loggedIn});
+    }
+  });
+
+
+  // res.render('group-members', {loggedIn});
 });
-app.get('/group/:id/trips', (req, res) => {});
-app.get('/group/:id/trip/:date', (req, res) => {});
-app.get('/group/:id/archive', (req, res) => {});
+
+app.get('/group/:id/ideas', (req, res) => {
+  const groupId = Number(req.params.id);
+  const groupDetails = {};
+  groupDetails.id = groupId;
+
+  const ideasQuery = `select * from events_repository where group_id=${groupId}`;
+  pool.query(ideasQuery, (ideasQueryError, ideasQueryResult) => {
+    if (ideasQueryError) {
+      console.log('error', ideasQueryError);
+    } else {
+      console.log(ideasQueryResult.rows);
+      const allIdeas = ideasQueryResult.rows;
+      const {loggedIn} = req.cookies;
+      console.log('logged in?', loggedIn);
+      res.render('ideas', {allIdeas, groupDetails, loggedIn});
+    }
+  });
+
+  // res.render('ideas', {groupDetails});
+});
+app.get('/group/:id/trips', (req, res) => {
+  const groupId = Number(req.params.id);
+  const groupDetails = {};
+  groupDetails.id = groupId;
+  const {loggedIn} = req.cookies;
+  res.render('planned-trips', {loggedIn, groupDetails});
+
+
+  // const ideasQuery = `select * from events_repository where group_id=${groupId}`;
+  // pool.query(ideasQuery, (ideasQueryError, ideasQueryResult) => {
+  //   if (ideasQueryError) {
+  //     console.log('error', ideasQueryError);
+  //   } else {
+  //     console.log(ideasQueryResult.rows);
+  //     const allIdeas = ideasQueryResult.rows;
+  //     const {loggedIn} = req.cookies;
+  //     console.log('logged in?', loggedIn);
+  //     res.render('ideas', {allIdeas, groupDetails, loggedIn});
+  //   }
+  // });
+} );
+app.get('/group/:id/trip/:date', (req, res) => {} );
+app.get('/group/:id/archive', (req, res) => {} );
 
 app.listen(3004);

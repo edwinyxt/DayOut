@@ -29,6 +29,23 @@ CREATE TABLE IF NOT EXISTS events_repository (
   description VARCHAR ( 255 ) NOT NULL,
   link VARCHAR ( 255 ) NOT NULL,
   location VARCHAR ( 255 ) NOT NULL,
-  start_date TEXT
+  start_date TEXT,
   end_date TEXT
+);
+
+CREATE TABLE IF NOT EXISTS planned_trips (
+  id SERIAL PRIMARY KEY,
+  admin_user_id INTEGER REFERENCES users(id),
+  group_id INTEGER REFERENCES groups(id),
+  location VARCHAR ( 255 ) NOT NULL,
+  start_date TEXT,
+  start_time TEXT
+);
+
+CREATE TABLE IF NOT EXISTS events_planned (
+  id SERIAL PRIMARY KEY,
+  planned_trip_id INTEGER REFERENCES planned_trips(id),
+  event_id INTEGER REFERENCES events_repository(id),
+  start_time TEXT,
+  end_time TEXT
 );

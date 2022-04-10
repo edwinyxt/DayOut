@@ -70,6 +70,39 @@
       </div>
     </nav>
 
+    <div class="modal fade" id="addmember-modal">
+      <div class="modal-dialog">
+
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1>Add New Member</h1>
+          </div>
+          <div class="modal-body">
+            <form class="entry-form-container" action="/create-idea/<%= groupDetails.id %>" method="POST">
+              <div class="row">
+                <div class="row">
+                  <div class="form-group">
+                    <label for="description">Username: </label>
+                    <input class="form-control" name="username" id="username">
+                  </div>
+                </div>
+
+
+
+
+              </div>
+
+              <br><br>
+              <button type="submit" class="btn btn-secondary btn-block">Submit</button>
+            </form>
+          </div>
+          <div class="modal-footer"></div>
+
+        </div>
+      </div>
+
+    </div>
+
     <main class="ps-0 ps-md-5 flex-grow-1">
       <h1>Welcome to Group ABC</h1>
 
@@ -84,27 +117,31 @@
               <th>Interests</th>
               <th id="delete-heading">Delete</th>
             </tr>
-            <tr>
+            <% for (let i=0; i < members.length; i +=1) { %>
+              <tr>
+                <td>
+                  <%= members[i].username %>
+                </td>
 
-              <td><a href="/note/1" style="color: darkslategray">
-                  -
-                </a></td>
-
-              <td>
-                -
-              </td>
-              <td>
-                -
-              </td>
-              <td>
-                <form id="delete-button" action="/note/1/delete?_method=DELETE" method="POST">
-                  <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
-                </form>
-              </td>
-            </tr>
-
+                <td>
+                  <%= members[i].email %>
+                </td>
+                <td>
+                  *some interests*
+                </td>
+                <td>
+                  <form id="delete-button" action="/note/<%= members[i].id %>/delete?_method=DELETE" method="POST">
+                    <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
+                  </form>
+                </td>
+              </tr>
+              <% } %>
           </table>
         </div>
+
+
+        <a href="#" data-toggle="modal" data-target="#addmember-modal" class="btn btn-primary">Add New Member</a>
+
       </div>
     </main>
   </div>
