@@ -78,19 +78,19 @@
             <h1>Plan a New Trip</h1>
           </div>
           <div class="modal-body">
-            <form class="entry-form-container" action="/create-idea/<%= groupDetails.id %>" method="POST">
+            <form class="entry-form-container" action="/create-trip/<%= groupDetails.id %>" method="POST">
               <div class="row">
                 <div class="row">
                   <div class="form-group">
                     <label for="description">Date: </label>
-                    <input class="form-control" name="date" id="date">
+                    <input class="form-control" type="date" name="date" id="date">
                   </div>
                 </div>
 
                 <div class="row">
                   <div class="form-group">
                     <label for="link">Start Time: </label>
-                    <input class="form-control" name="start_time" id="start_time">
+                    <input class="form-control" type="time" name="start_time" id="start_time">
                   </div>
                 </div>
                 <div class="row">
@@ -120,16 +120,22 @@
         <h1 style="text-align:center">Upcoming Trips</h1>
         <div class="row">
 
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="card"><img src="https://picsum.photos/200/300" class="card-img-top" alt="A Group">
-              <div class="card-body">
-                <h5 class="card-title"></h5>
-                <p class="card-text">
 
-                </p>
+
+          <% for (let i=0; i < allTrips.length; i +=1) { %>
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="/group/<%= groupDetails.id %>/trips/<%= allTrips[i].start_date %>">
+                      <%= allTrips[i].start_date %>
+                    </a></h5>
+                  <p class="card-text">
+                    <%= allTrips[i].start_time %> at <%= allTrips[i].location %>
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+            <% } %>
 
         </div>
 

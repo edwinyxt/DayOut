@@ -147,21 +147,6 @@ app.post('/create-group', (req, res) => {
   res.redirect('/groups');
 });
 
-app.post('/create-idea/:id', (req, res) => {
-  const groupId = Number(req.params.id);
-  const ideaData = req.body;
-  const inputData = [Number(req.cookies.userId), groupId, ideaData.description, ideaData.link, ideaData.location, ideaData.sdate, ideaData.edate];
-
-  console.log(inputData);
-
-  pool
-      .query('INSERT INTO events_repository (user_id, group_id, description, link, location, start_date, end_date) VALUES ($1, $2, $3,$4,$5,$6,$7) RETURNING id', inputData).then((result) => {
-        console.log(result.rows);
-      }).catch((error) => console.log(error.stack));
-
-  res.redirect(`/group/${groupId}/ideas`);
-}),
-
 app.get('/group/:id', (req, res) => {
   // const {id} = req.params;
   const groupId = Number(req.params.id);
@@ -221,28 +206,66 @@ app.get('/group/:id/ideas', (req, res) => {
 
   // res.render('ideas', {groupDetails});
 });
+
+app.post('/create-idea/:id', (req, res) => {
+  const groupId = Number(req.params.id);
+  const ideaData = req.body;
+  const inputData = [Number(req.cookies.userId), groupId, ideaData.description, ideaData.link, ideaData.location, ideaData.sdate, ideaData.edate];
+
+  console.log(inputData);
+
+  pool
+      .query('INSERT INTO events_repository (user_id, group_id, description, link, location, start_date, end_date) VALUES ($1, $2, $3,$4,$5,$6,$7) RETURNING id', inputData).then((result) => {
+        console.log(result.rows);
+      }).catch((error) => console.log(error.stack));
+
+  res.redirect(`/group/${groupId}/ideas`);
+}),
+
 app.get('/group/:id/trips', (req, res) => {
   const groupId = Number(req.params.id);
   const groupDetails = {};
   groupDetails.id = groupId;
   const {loggedIn} = req.cookies;
-  res.render('planned-trips', {loggedIn, groupDetails});
+  // res.render('planned-trips', {loggedIn, groupDetails});
+
+  const tripsQuery = `select * from planned_trips where group_id=${groupId}`;
 
 
   // const ideasQuery = `select * from events_repository where group_id=${groupId}`;
-  // pool.query(ideasQuery, (ideasQueryError, ideasQueryResult) => {
-  //   if (ideasQueryError) {
-  //     console.log('error', ideasQueryError);
-  //   } else {
-  //     console.log(ideasQueryResult.rows);
-  //     const allIdeas = ideasQueryResult.rows;
-  //     const {loggedIn} = req.cookies;
-  //     console.log('logged in?', loggedIn);
-  //     res.render('ideas', {allIdeas, groupDetails, loggedIn});
-  //   }
-  // });
+  pool.query(tripsQuery, (tripsQueryError, tripsQueryResult) => {
+    if (tripsQueryError) {
+      console.log('error', tripsQueryError);
+    } else {
+      console.log(tripsQueryResult.rows);
+      const allTrips = tripsQueryResult.rows;
+      const {loggedIn} = req.cookies;
+      console.log('logged in?', loggedIn);
+      res.render('planned-trips', {allTrips, groupDetails, loggedIn});
+    }
+  });
 } );
-app.get('/group/:id/trip/:date', (req, res) => {} );
+
+app.post('/create-trip/:id', (req, res) => {
+  const groupId = Number(req.params.id);
+  const tripData = req.body;
+  const inputData = [Number(req.cookies.userId), groupId, tripData.date, tripData.start_time, tripData.location];
+
+  console.log(inputData);
+
+  pool
+      .query('INSERT INTO planned_trips (admin_user_id, group_id, start_date, start_time, location) VALUES ($1, $2, $3,$4,$5) RETURNING id', inputData).then((result) => {
+        console.log(result.rows);
+      }).catch((error) => console.log(error.stack));
+
+  res.redirect(`/group/${groupId}/trips`);
+});
+
+app.get('/group/:id/trips/:date', (req, res) => {
+  console.log(req.params);
+} );
+
+
 app.get('/group/:id/archive', (req, res) => {} );
 
 app.listen(3004);
