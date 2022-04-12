@@ -261,11 +261,46 @@ app.post('/create-trip/:id', (req, res) => {
   res.redirect(`/group/${groupId}/trips`);
 });
 
-app.get('/group/:id/trips/:date', (req, res) => {
+app.get('/group/:id/trips/:tripId', (req, res) => {
   console.log(req.params);
+
+  const tripId = Number(req.params.tripId);
+  // const tripDetails2 = {};
+  // tripDetails2.id = tripId;
+
+  const tripQuery = `select * from planned_trips where id=${tripId}`;
+  pool.query(tripQuery, (tripQueryError, tripQueryResult) => {
+    if (tripQueryError) {
+      console.log('error', tripQueryError);
+    } else {
+      const tripDetails = tripQueryResult.rows[0];
+
+      const {loggedIn} = req.cookies;
+      console.log('logged in?', loggedIn);
+      console.log(tripDetails, 'check here pls');
+      res.render('single-trip', {tripDetails, loggedIn});
+    }
+  });
 } );
 
+app.post('/create-trip-event/:tripId', (req, res) => {
+  console.log(req.params);
+});
 
-app.get('/group/:id/archive', (req, res) => {} );
+
+app.get('/group/:id/archive', (req, res) => {
+  const results = Promise.all([
+    pool.query('SELECT * FROM planned_trips'),
+    pool.query('SELECT * FROM events_repository'),
+
+  // allResults is an array of results whose elements correspond
+  // to the elements in the Promise.all parameter array
+  ]);
+
+  results.then((allResults) => {
+    // console.log(allResults, 'results');
+    allResults.forEach((e) => console.log(e.rows, 'the output'));
+  });
+} );
 
 app.listen(3004);

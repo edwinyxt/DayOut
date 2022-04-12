@@ -17,7 +17,52 @@
 </head>
 
 <body>
+  <div class="modal fade" id="creategroup-modal">
+    <div class="modal-dialog">
 
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1>Add Activity</h1>
+        </div>
+        <div class="modal-body">
+          <form class="entry-form-container" action="/create-trip-event/<%= tripDetails.id %>" method="POST">
+            <div class="row">
+              <div class="row">
+                <div class="form-group">
+                  <label for="description">Select an Idea: </label>
+                  <input class="form-control" name="description" id="description">
+                </div>
+              </div>
+
+
+
+              <div class="row">
+                <div class="form-group">
+                  <label for="start-date">Start time: </label>
+                  <input class="form-control" type="time" name="sdate" id="sdate" min="2015/01/01">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="form-group">
+                  <label for="end-date">End time: </label>
+                  <input class="form-control" type="time" name="edate" id="edate" min="2015/01/01">
+                </div>
+              </div>
+
+
+            </div>
+
+            <br><br>
+            <button type="submit" class="btn btn-secondary btn-block">Submit</button>
+          </form>
+        </div>
+        <div class="modal-footer"></div>
+
+      </div>
+    </div>
+
+  </div>
   <div class="container">
     <nav class="navbar navbar-expand-sm navbar-light bg-light">
 
@@ -61,8 +106,8 @@
 
         <ul class="navbar-nav w-100 d-flex flex-md-column text-center text-md-end">
           <li> <a href="#" class="nav-link">Group Profile</a> </li>
-          <li> <a href="/group/<%= groupDetails.id %>/members" class="nav-link">Members</a> </li>
-          <li> <a href="/group/<%= groupDetails.id %>/ideas" class="nav-link">Ideas</a> </li>
+          <li> <a href="#" class="nav-link">Members</a> </li>
+          <li> <a href="#" class="nav-link">Ideas</a> </li>
           <li> <a href="#" class="nav-link">Trips</a> </li>
           <li> <a href="#" class="nav-link">History</a> </li>
         </ul>
@@ -70,77 +115,38 @@
       </div>
     </nav>
 
-    <div class="modal fade" id="addtrip-modal">
-      <div class="modal-dialog">
+    <main class="ps-0 ps-md-5 flex-grow-1">
+      <h1>Welcome to Group ABC</h1>
 
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1>Plan a New Trip</h1>
-          </div>
-          <div class="modal-body">
-            <form class="entry-form-container" action="/create-trip/<%= groupDetails.id %>" method="POST">
-              <div class="row">
-                <div class="row">
-                  <div class="form-group">
-                    <label for="description">Date: </label>
-                    <input class="form-control" type="date" name="date" id="date">
-                  </div>
-                </div>
+      <div class="container landing-page">
+        <h3>
+          <%= tripDetails.start_date %>
+        </h3>
+        <h3>
+          <%= tripDetails.start_time %>
+        </h3>
+        <h3>
+          <%= tripDetails.location %>
+        </h3>
+        <br>
+        <div class="table-responsive">
+          <table class="table">
+            <tr>
+              <th>Description</th>
+              <th class="d-none d-sm-table-cell">Location</th>
 
-                <div class="row">
-                  <div class="form-group">
-                    <label for="link">Start Time: </label>
-                    <input class="form-control" type="time" name="start_time" id="start_time">
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="form-group">
-                    <label for="location">Meetup Location: </label>
-                    <input class="form-control" name="location" id="location">
-                  </div>
-                </div>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Link</th>
+              <th id="delete-heading">Delete</th>
+            </tr>
 
-
-
-              </div>
-
-              <br><br>
-              <button type="submit" class="btn btn-secondary btn-block">Submit</button>
-            </form>
-          </div>
-          <div class="modal-footer"></div>
-
-        </div>
-      </div>
-
-    </div>
-
-    <main class="ps-0 ps-md-5">
-      <div class="container">
-        <h1 style="text-align:center">Upcoming Trips</h1>
-        <div class="row">
-
-
-
-          <% for (let i=0; i < allTrips.length; i +=1) { %>
-            <div class="col-12 col-md-6 col-lg-4">
-              <div class="card">
-                <div class="card-body">
-                  <h5 class="card-title"><a href="/group/<%= groupDetails.id %>/trips/<%= allTrips[i].id %>">
-                      <%= allTrips[i].start_date %>
-                    </a></h5>
-                  <p class="card-text">
-                    <%= allTrips[i].start_time %> at <%= allTrips[i].location %>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <% } %>
-
+          </table>
         </div>
 
+        <a href="#" data-toggle="modal" data-target="#creategroup-modal" class="btn btn-primary">Add Activity</a>
 
-        <a href="#" data-toggle="modal" data-target="#addtrip-modal" class="btn btn-primary">Plan a New Trip</a>
+
       </div>
     </main>
   </div>
