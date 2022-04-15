@@ -25,12 +25,24 @@
           <h1>Add Activity</h1>
         </div>
         <div class="modal-body">
-          <form class="entry-form-container" action="/create-trip-event/<%= tripDetails.id %>" method="POST">
+          <form class="entry-form-container" action="/create-trip-event/<%= groupDetails.id %>/<%= tripDetails.id %>"
+            method="POST">
             <div class="row">
               <div class="row">
                 <div class="form-group">
                   <label for="description">Select an Idea: </label>
-                  <input class="form-control" name="description" id="description">
+
+
+                  <select name="idea_id">
+                    <% allIdeas.forEach((idea)=> { %>
+                      <option value="<%= idea.id %>">
+                        <%= idea.description %>
+                      </option>
+                      <% }); %>
+                  </select>
+
+
+
                 </div>
               </div>
 
@@ -39,14 +51,14 @@
               <div class="row">
                 <div class="form-group">
                   <label for="start-date">Start time: </label>
-                  <input class="form-control" type="time" name="sdate" id="sdate" min="2015/01/01">
+                  <input class="form-control" type="time" name="start_time" id="start_time">
                 </div>
               </div>
 
               <div class="row">
                 <div class="form-group">
                   <label for="end-date">End time: </label>
-                  <input class="form-control" type="time" name="edate" id="edate" min="2015/01/01">
+                  <input class="form-control" type="time" name="end_time" id="end_time">
                 </div>
               </div>
 
@@ -134,12 +146,38 @@
             <tr>
               <th>Description</th>
               <th class="d-none d-sm-table-cell">Location</th>
-
-              <th>Start Date</th>
-              <th>End Date</th>
+              <th>Start time</th>
+              <th>End time</th>
               <th>Link</th>
               <th id="delete-heading">Delete</th>
             </tr>
+
+            <% for (let i=0; i < tripEvents.length; i +=1) { %>
+              <tr>
+                <td>
+                  <%= tripEvents[i].description %>
+                </td>
+
+                <td>
+                  <%= tripEvents[i].location %>
+                </td>
+                <td>
+                  <%= tripEvents[i].start_time %>
+                </td>
+                <td>
+                  <%= tripEvents[i].end_time %>
+                </td>
+
+                <td><a href="<%= tripEvents[i].link %>" style="color: darkslategray">
+                    Details
+                  </a></td>
+                <td>
+                  <form id="delete-button" action="/note/<%= allIdeas[i].id %>/delete?_method=DELETE" method="POST">
+                    <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
+                  </form>
+                </td>
+              </tr>
+              <% } %>
 
           </table>
         </div>

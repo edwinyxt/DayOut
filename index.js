@@ -265,26 +265,51 @@ app.get('/group/:id/trips/:tripId', (req, res) => {
   console.log(req.params);
 
   const tripId = Number(req.params.tripId);
-  // const tripDetails2 = {};
-  // tripDetails2.id = tripId;
+
+
+  const groupId = Number(req.params.id);
+  const groupDetails = {};
+  groupDetails.id = groupId;
 
   const tripQuery = `select * from planned_trips where id=${tripId}`;
-  pool.query(tripQuery, (tripQueryError, tripQueryResult) => {
-    if (tripQueryError) {
-      console.log('error', tripQueryError);
-    } else {
-      const tripDetails = tripQueryResult.rows[0];
+  const allIdeasQuery = `select * from events_repository where group_id=${groupId}`;
+  const tripEventsQuery = `select * from events_planned INNER JOIN events_repository on events_planned.event_id = events_repository.id where events_planned.planned_trip_id = ${tripId}`;
 
-      const {loggedIn} = req.cookies;
-      console.log('logged in?', loggedIn);
-      console.log(tripDetails, 'check here pls');
-      res.render('single-trip', {tripDetails, loggedIn});
-    }
+  const results = Promise.all([
+    pool.query(tripQuery),
+    pool.query(allIdeasQuery),
+    pool.query(tripEventsQuery),
+  ]);
+
+  results.then((allResults) => {
+    const [tripQueryResult, ideasQueryResult, tripEventsQueryResult] = allResults;
+    console.log(tripQueryResult.rows, '1');
+    console.log(ideasQueryResult.rows, '2');
+
+    const tripDetails = tripQueryResult.rows[0];
+    const allIdeas = ideasQueryResult.rows;
+    const tripEvents = tripEventsQueryResult.rows;
+
+    res.render('single-trip', {tripDetails, tripEvents, groupDetails, allIdeas});
   });
 } );
 
-app.post('/create-trip-event/:tripId', (req, res) => {
+app.post('/create-trip-event/:groupId/:tripId', (req, res) => {
   console.log(req.params);
+  const tripId = Number(req.params.tripId);
+  const groupId = Number(req.params.groupId);
+  const activityData = req.body;
+
+  console.log(activityData);
+
+  const inputData = [tripId, activityData.idea_id, activityData.start_time, activityData.end_time];
+
+  pool
+      .query('INSERT INTO events_planned (planned_trip_id, event_id, start_time, end_time ) VALUES ($1, $2, $3,$4) RETURNING id', inputData).then((result) => {
+        console.log(result.rows);
+      }).catch((error) => console.log(error.stack));
+
+  res.redirect(`/group/${groupId}/trips/${tripId}`);
 });
 
 
