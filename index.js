@@ -56,11 +56,26 @@ const checkAuth = (req, res, next) => {
       } else {
         const userNameResult = userNameQueryResult.rows[0];
         app.locals.username = userNameResult.username;
+        app.locals.userid = Number(req.cookies.userId);
+        next();
       }
     });
   }
+};
 
-  next();
+const groupAuth = (req, res, next) => {
+  const groupId = Number(req.params.id);
+  const groupQuery = `SELECT * from groups where id = ${groupId}`;
+  pool.query(groupQuery, (groupQueryError, groupQueryResult)=>{
+    if (groupQueryError) {
+      console.log('error', groupQueryError);
+    } else {
+      const groupDetails = groupQueryResult.rows[0];
+      console.log('groupDetails', groupDetails);
+      app.locals.groupname = groupDetails.name;
+      next();
+    }
+  });
 };
 
 app.get('/', (req, res) => {
@@ -171,9 +186,7 @@ app.post('/create-group', (req, res) => {
         const userData = [Number(req.cookies.userId), groupId];
 
         return pool.query(
-            'INSERT INTO users_groups (user_id, group_id) VALUES ($1, $2) RETURNING *', userData,
-
-        );
+            'INSERT INTO users_groups (user_id, group_id) VALUES ($1, $2) RETURNING *', userData);
       })
       .then((result) => {
         console.log(result.rows);
@@ -182,25 +195,29 @@ app.post('/create-group', (req, res) => {
   res.redirect('/groups');
 });
 
-app.get('/group/:id', checkAuth, (req, res) => {
+app.get('/group/:id', checkAuth, groupAuth, (req, res) => {
   if (req.isUserLoggedIn === false) {
     res.redirect('/login');
   } else {
     const groupId = Number(req.params.id);
-    const groupQuery = `SELECT * from groups where id = ${groupId}`;
-    pool.query(groupQuery, (groupQueryError, groupQueryResult)=>{
-      if (groupQueryError) {
-        console.log('error', groupQueryError);
-      } else {
-        const groupDetails = groupQueryResult.rows[0];
-        console.log('groupDetails', groupDetails);
-        res.render('single-group-home', {groupDetails});
-      }
-    });
+    const groupDetails = {};
+    groupDetails.id = groupId;
+    res.render('single-group-home', {groupDetails});
+    //
+    // const groupQuery = `SELECT * from groups where id = ${groupId}`;
+    // pool.query(groupQuery, (groupQueryError, groupQueryResult)=>{
+    //   if (groupQueryError) {
+    //     console.log('error', groupQueryError);
+    //   } else {
+    //     const groupDetails = groupQueryResult.rows[0];
+    //     console.log('groupDetails', groupDetails);
+
+    //   }
+    // });
   }
 });
 
-app.get('/group/:id/members', checkAuth, (req, res) => {
+app.get('/group/:id/members', checkAuth, groupAuth, (req, res) => {
   // const {loggedIn} = req.cookies;
   if (req.isUserLoggedIn === false) {
     res.redirect('/login');
@@ -271,7 +288,7 @@ app.post('/add-member/:id', (req, res) => {
   res.redirect(`/group/${groupId}/members`);
 });
 
-app.get('/group/:id/ideas', checkAuth, (req, res) => {
+app.get('/group/:id/ideas', checkAuth, groupAuth, (req, res) => {
   if (req.isUserLoggedIn === false) {
     res.redirect('/login');
   } else {
@@ -279,20 +296,48 @@ app.get('/group/:id/ideas', checkAuth, (req, res) => {
     const groupDetails = {};
     groupDetails.id = groupId;
 
-    const ideasQuery = `select * from events_repository where group_id=${groupId}`;
+    const ideasQuery = `select e.id, e.user_id, e.description,e.location,e.start_date,e.end_date,e.link,users.username from events_repository e INNER JOIN users on users.id = e.user_id where e.group_id = ${groupId}`;
     pool.query(ideasQuery, (ideasQueryError, ideasQueryResult) => {
       if (ideasQueryError) {
         console.log('error', ideasQueryError);
       } else {
         console.log(ideasQueryResult.rows);
         const allIdeas = ideasQueryResult.rows;
-        const {loggedIn} = req.cookies;
-        console.log('logged in?', loggedIn);
-        res.render('ideas', {allIdeas, groupDetails, loggedIn});
+        res.render('ideas', {allIdeas, groupDetails});
       }
     });
   }
   // res.render('ideas', {groupDetails});
+});
+
+app.put('/idea/:id/:ideaId/edit', (req, res) => {
+  const groupId = Number(req.params.id);
+  const ideaId = Number(req.params.ideaId);
+  const ideaData = req.body;
+  const inputData = [Number(req.cookies.userId), groupId, ideaData.description, ideaData.link, ideaData.location, ideaData.sdate, ideaData.edate];
+
+  console.log(inputData, 'edited form');
+
+  pool
+      .query(`UPDATE events_repository SET description = '${ideaData.description}' , link = '${ideaData.link}' , location = '${ideaData.location}' , start_date = '${ideaData.sdate}' , end_date = '${ideaData.edate}' where id = ${ideaId}`)
+
+      .then((result) => {
+        console.log(result.rows);
+        res.redirect(`/group/${groupId}/ideas`);
+      }).catch((error) => console.log(error.stack));
+});
+
+app.delete('/idea/:id/:ideaId/delete', (req, res) => {
+  const ideaId = Number(req.params.ideaId);
+  const groupId = Number(req.params.id);
+  const deleteIdeaQuery = `DELETE FROM events_repository WHERE id = ${ideaId}`;
+  pool.query(deleteIdeaQuery, (deleteIdeaQueryError, deleteIdeaQueryResult) => {
+    if (deleteIdeaQueryError) {
+      console.log('error', deleteIdeaQueryError);
+    } else {
+      res.redirect(`/group/${groupId}/ideas`);
+    }
+  });
 });
 
 app.post('/create-idea/:id', (req, res) => {
@@ -310,7 +355,7 @@ app.post('/create-idea/:id', (req, res) => {
   res.redirect(`/group/${groupId}/ideas`);
 }),
 
-app.get('/group/:id/trips', checkAuth, (req, res) => {
+app.get('/group/:id/trips', checkAuth, groupAuth, (req, res) => {
   if (req.isUserLoggedIn === false) {
     res.redirect('/login');
   } else {
@@ -348,12 +393,13 @@ app.post('/create-trip/:id', (req, res) => {
   pool
       .query('INSERT INTO planned_trips (admin_user_id, group_id, start_date, start_time, location) VALUES ($1, $2, $3,$4,$5) RETURNING id', inputData).then((result) => {
         console.log(result.rows);
+        res.redirect(`/group/${groupId}/trips`);
       }).catch((error) => console.log(error.stack));
 
-  res.redirect(`/group/${groupId}/trips`);
+  // res.redirect(`/group/${groupId}/trips`);
 });
 
-app.get('/group/:id/trips/:tripId', checkAuth, (req, res) => {
+app.get('/group/:id/trips/:tripId', checkAuth, groupAuth, (req, res) => {
   if (req.isUserLoggedIn === false) {
     res.redirect('/login');
   } else {
@@ -407,7 +453,6 @@ app.post('/create-trip-event/:groupId/:tripId', (req, res) => {
 
   res.redirect(`/group/${groupId}/trips/${tripId}`);
 });
-
 
 app.get('/group/:id/archive', (req, res) => {
   const results = Promise.all([

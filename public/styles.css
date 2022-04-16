@@ -51,6 +51,7 @@ body {
 .main-navbar {
   background: #feb139;
   background-size: cover;
+  padding-left: 20px;
 }
 
 .landing-page {
@@ -65,4 +66,13 @@ body {
   align-items: center;
   /* background: url("/single-note.jpeg") no-repeat center center fixed; */
   background-size: cover;
+}
+
+.navbar-expand-md .navbar-nav .nav-link {
+  align-self: flex-start;
+  padding-right: initial;
+}
+
+.groupNavBar {
+  align-self: flex-start;
 }

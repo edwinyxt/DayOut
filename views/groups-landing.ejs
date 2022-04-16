@@ -73,14 +73,14 @@
       <h1 style="text-align:center">Your Groups</h1>
       <div class="row">
         <% for (let i=0; i < allGroups.length; i +=1) { %>
-          <div class="col-12 col-md-6 col-lg-4">
+          <div class="col-12 col-md-6 col-lg-4" style="background-color: rgba(211, 211, 211, 0.8) ; padding:10px">
             <div class="card">
               <div class="img-container">
                 <img src="https://picsum.photos/200" class="card-img-top" alt="A Group">
 
               </div>
               <div class="card-body">
-                <h5 class="card-title"><a href="/group/<%= allGroups[i].id %>">
+                <h5 class="card-title"><a href="/group/<%= allGroups[i].group_id %>">
                     <%= allGroups[i].name %>
                   </a></h5>
                 <p class="card-text">
