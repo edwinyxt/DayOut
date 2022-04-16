@@ -21,7 +21,7 @@ body {
   background: white;
   padding: 30px;
   border-radius: 10px;
-  /* box-shadow: 0 0 10px 0 black; */
+  box-shadow: 0 0 10px 0 black;
   border: solid black 1px;
 }
 
@@ -39,7 +39,17 @@ body {
 }
 
 .sign-up {
-  /* background: url("single-note-bg.jpeg") no-repeat center center fixed; */
+  background: url("sheares-bridge.jpg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+.groups-landing {
+  background: url("flyer.jpg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+.main-navbar {
+  background: #feb139;
   background-size: cover;
 }
 

@@ -22,6 +22,51 @@ app.use(express.urlencoded({extended: false}));
 app.use(methodOverride('_method'));
 app.use(cookieParser());
 
+const getHash = (input) => {
+  // create new SHA object
+  const shaObj = new jsSHA('SHA-512', 'TEXT', {encoding: 'UTF8'});
+
+  // create an unhashed cookie string based on user ID and salt
+  const unhashedString = `${input}-${SALT}`;
+
+  // generate a hashed cookie string using SHA object
+  shaObj.update(unhashedString);
+
+  return shaObj.getHash('HEX');
+};
+
+const checkAuth = (req, res, next) => {
+  req.isUserLoggedIn = false;
+
+  // check to see if the cookies you need exists
+  if (req.cookies.loggedIn && req.cookies.userId) {
+    // get the hased value that should be inside the cookie
+    const hash = getHash(req.cookies.userId);
+
+    // test the value of the cookie
+    if (req.cookies.loggedInHash === hash) {
+      req.isUserLoggedIn = true;
+    }
+
+    const userNameQuery = `select username from users where id = ${req.cookies.userId}`;
+
+    pool.query(userNameQuery, (userNameQueryError, userNameQueryResult) => {
+      if (userNameQueryError) {
+        console.log('error', userNameQueryError);
+      } else {
+        const userNameResult = userNameQueryResult.rows[0];
+        app.locals.username = userNameResult.username;
+      }
+    });
+  }
+
+  next();
+};
+
+app.get('/', (req, res) => {
+  res.redirect('/groups');
+});
+
 app.get('/signup', (req, res) => {
   const {loggedIn} = req.cookies;
   res.render('sign-up', {loggedIn});
@@ -96,10 +141,10 @@ app.delete('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-app.get('/groups', (req, res) => {
-  const {loggedIn, userId} = req.cookies;
-  if (!loggedIn) {
-    res.render('login', {loggedIn});
+app.get('/groups', checkAuth, (req, res) => {
+  const {userId} = req.cookies;
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
   } else {
     const groupsQuery = `select * from groups INNER JOIN users_groups ON groups.id = users_groups.group_id WHERE users_groups.user_id = ${userId}`;
     pool.query(groupsQuery, (groupsQueryError, groupsQueryResult) => {
@@ -108,17 +153,7 @@ app.get('/groups', (req, res) => {
       } else {
         console.log(groupsQueryResult.rows);
         const allGroups = groupsQueryResult.rows;
-
-        const userNameQuery = `select username from users where id = ${userId}`;
-
-        pool.query(userNameQuery, (userNameQueryError, userNameQueryResult) => {
-          if (userNameQueryError) {
-            console.log('error', userNameQueryError);
-          } else {
-            const userNameResult = userNameQueryResult.rows[0];
-            res.render('groups-landing', {allGroups, userNameResult});
-          }
-        });
+        res.render('groups-landing', {allGroups});
       }
     });
   };
@@ -147,63 +182,116 @@ app.post('/create-group', (req, res) => {
   res.redirect('/groups');
 });
 
-app.get('/group/:id', (req, res) => {
-  // const {id} = req.params;
-  const groupId = Number(req.params.id);
-  const groupQuery = `SELECT * from groups where id = ${groupId}`;
-  pool.query(groupQuery, (groupQueryError, groupQueryResult)=>{
-    if (groupQueryError) {
-      console.log('error', groupQueryError);
-    } else {
-      const groupDetails = groupQueryResult.rows[0];
-      console.log('groupDetails', groupDetails);
-      res.render('single-group-home', {groupDetails});
-    }
-  });
+app.get('/group/:id', checkAuth, (req, res) => {
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
+  } else {
+    const groupId = Number(req.params.id);
+    const groupQuery = `SELECT * from groups where id = ${groupId}`;
+    pool.query(groupQuery, (groupQueryError, groupQueryResult)=>{
+      if (groupQueryError) {
+        console.log('error', groupQueryError);
+      } else {
+        const groupDetails = groupQueryResult.rows[0];
+        console.log('groupDetails', groupDetails);
+        res.render('single-group-home', {groupDetails});
+      }
+    });
+  }
 });
 
-app.get('/group/:id/members', (req, res) => {
+app.get('/group/:id/members', checkAuth, (req, res) => {
   // const {loggedIn} = req.cookies;
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
+  } else {
+    const groupId = Number(req.params.id);
+    const groupDetails = {};
+    groupDetails.id = groupId;
 
-  const groupId = Number(req.params.id);
-  const groupDetails = {};
-  groupDetails.id = groupId;
+    const membersQuery = `select * from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId}`;
 
-  const membersQuery = `select * from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId}`;
-  pool.query(membersQuery, (membersQueryError, membersQueryResult) => {
-    if (membersQueryError) {
-      console.log('error', membersQueryError);
-    } else {
-      console.log(membersQueryResult.rows);
+    const nonMembersQuery = `select email,username from users except select email,username from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId};`;
+
+    const results = Promise.all([
+      pool.query(membersQuery),
+      pool.query(nonMembersQuery),
+    ]);
+
+    results.then((allResults) => {
+      const [membersQueryResult, nonMembersQueryResult] = allResults;
+
       const members = membersQueryResult.rows;
-      const {loggedIn} = req.cookies;
-      console.log('logged in?', loggedIn);
-      res.render('group-members', {members, groupDetails, loggedIn});
-    }
-  });
+      const nonMembers = nonMembersQueryResult.rows;
 
+      res.render('group-members', {members, nonMembers, groupDetails});
+    } );
+
+
+    // pool.query(membersQuery, (membersQueryError, membersQueryResult) => {
+    //   if (membersQueryError) {
+    //     console.log('error', membersQueryError);
+    //   } else {
+    //     console.log(membersQueryResult.rows);
+    //     const members = membersQueryResult.rows;
+    //     // const {loggedIn} = req.cookies;
+    //     // console.log('logged in?', loggedIn);
+    //     res.render('group-members', {members, groupDetails});
+    //   }
+    // });
+  }
 
   // res.render('group-members', {loggedIn});
 });
 
-app.get('/group/:id/ideas', (req, res) => {
+app.post('/add-member/:id', (req, res) => {
   const groupId = Number(req.params.id);
-  const groupDetails = {};
-  groupDetails.id = groupId;
+  const newMemberData = req.body;
+  const newMemberEmail = newMemberData.non_member_email;
 
-  const ideasQuery = `select * from events_repository where group_id=${groupId}`;
-  pool.query(ideasQuery, (ideasQueryError, ideasQueryResult) => {
-    if (ideasQueryError) {
-      console.log('error', ideasQueryError);
-    } else {
-      console.log(ideasQueryResult.rows);
-      const allIdeas = ideasQueryResult.rows;
-      const {loggedIn} = req.cookies;
-      console.log('logged in?', loggedIn);
-      res.render('ideas', {allIdeas, groupDetails, loggedIn});
-    }
-  });
+  console.log(newMemberEmail, 'newMemberEmail');
 
+  pool
+      .query(`select id from users where email = '${newMemberEmail}'`)
+
+      .then((result) => {
+        const newMemberId = result.rows[0].id;
+
+        const inputData = [newMemberId, groupId];
+        console.log(inputData, 'inputData');
+
+        return pool. query(
+            'INSERT INTO users_groups (user_id, group_id) VALUES ($1, $2) RETURNING *', inputData);
+      })
+      .then((result) => {
+        console.log(result.rows);
+      })
+      .catch((error) => console.log(error.stack));
+
+  res.redirect(`/group/${groupId}/members`);
+});
+
+app.get('/group/:id/ideas', checkAuth, (req, res) => {
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
+  } else {
+    const groupId = Number(req.params.id);
+    const groupDetails = {};
+    groupDetails.id = groupId;
+
+    const ideasQuery = `select * from events_repository where group_id=${groupId}`;
+    pool.query(ideasQuery, (ideasQueryError, ideasQueryResult) => {
+      if (ideasQueryError) {
+        console.log('error', ideasQueryError);
+      } else {
+        console.log(ideasQueryResult.rows);
+        const allIdeas = ideasQueryResult.rows;
+        const {loggedIn} = req.cookies;
+        console.log('logged in?', loggedIn);
+        res.render('ideas', {allIdeas, groupDetails, loggedIn});
+      }
+    });
+  }
   // res.render('ideas', {groupDetails});
 });
 
@@ -222,28 +310,32 @@ app.post('/create-idea/:id', (req, res) => {
   res.redirect(`/group/${groupId}/ideas`);
 }),
 
-app.get('/group/:id/trips', (req, res) => {
-  const groupId = Number(req.params.id);
-  const groupDetails = {};
-  groupDetails.id = groupId;
-  const {loggedIn} = req.cookies;
-  // res.render('planned-trips', {loggedIn, groupDetails});
+app.get('/group/:id/trips', checkAuth, (req, res) => {
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
+  } else {
+    const groupId = Number(req.params.id);
+    const groupDetails = {};
+    groupDetails.id = groupId;
+    const {loggedIn} = req.cookies;
+    // res.render('planned-trips', {loggedIn, groupDetails});
 
-  const tripsQuery = `select * from planned_trips where group_id=${groupId}`;
+    const tripsQuery = `select * from planned_trips where group_id=${groupId}`;
 
 
-  // const ideasQuery = `select * from events_repository where group_id=${groupId}`;
-  pool.query(tripsQuery, (tripsQueryError, tripsQueryResult) => {
-    if (tripsQueryError) {
-      console.log('error', tripsQueryError);
-    } else {
-      console.log(tripsQueryResult.rows);
-      const allTrips = tripsQueryResult.rows;
-      const {loggedIn} = req.cookies;
-      console.log('logged in?', loggedIn);
-      res.render('planned-trips', {allTrips, groupDetails, loggedIn});
-    }
-  });
+    // const ideasQuery = `select * from events_repository where group_id=${groupId}`;
+    pool.query(tripsQuery, (tripsQueryError, tripsQueryResult) => {
+      if (tripsQueryError) {
+        console.log('error', tripsQueryError);
+      } else {
+        console.log(tripsQueryResult.rows);
+        const allTrips = tripsQueryResult.rows;
+        const {loggedIn} = req.cookies;
+        console.log('logged in?', loggedIn);
+        res.render('planned-trips', {allTrips, groupDetails, loggedIn});
+      }
+    });
+  }
 } );
 
 app.post('/create-trip/:id', (req, res) => {
@@ -261,37 +353,41 @@ app.post('/create-trip/:id', (req, res) => {
   res.redirect(`/group/${groupId}/trips`);
 });
 
-app.get('/group/:id/trips/:tripId', (req, res) => {
-  console.log(req.params);
+app.get('/group/:id/trips/:tripId', checkAuth, (req, res) => {
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
+  } else {
+    console.log(req.params);
 
-  const tripId = Number(req.params.tripId);
+    const tripId = Number(req.params.tripId);
 
 
-  const groupId = Number(req.params.id);
-  const groupDetails = {};
-  groupDetails.id = groupId;
+    const groupId = Number(req.params.id);
+    const groupDetails = {};
+    groupDetails.id = groupId;
 
-  const tripQuery = `select * from planned_trips where id=${tripId}`;
-  const allIdeasQuery = `select * from events_repository where group_id=${groupId}`;
-  const tripEventsQuery = `select * from events_planned INNER JOIN events_repository on events_planned.event_id = events_repository.id where events_planned.planned_trip_id = ${tripId}`;
+    const tripQuery = `select * from planned_trips where id=${tripId}`;
+    const allIdeasQuery = `select * from events_repository where group_id=${groupId}`;
+    const tripEventsQuery = `select * from events_planned INNER JOIN events_repository on events_planned.event_id = events_repository.id where events_planned.planned_trip_id = ${tripId}`;
 
-  const results = Promise.all([
-    pool.query(tripQuery),
-    pool.query(allIdeasQuery),
-    pool.query(tripEventsQuery),
-  ]);
+    const results = Promise.all([
+      pool.query(tripQuery),
+      pool.query(allIdeasQuery),
+      pool.query(tripEventsQuery),
+    ]);
 
-  results.then((allResults) => {
-    const [tripQueryResult, ideasQueryResult, tripEventsQueryResult] = allResults;
-    console.log(tripQueryResult.rows, '1');
-    console.log(ideasQueryResult.rows, '2');
+    results.then((allResults) => {
+      const [tripQueryResult, ideasQueryResult, tripEventsQueryResult] = allResults;
+      console.log(tripQueryResult.rows, '1');
+      console.log(ideasQueryResult.rows, '2');
 
-    const tripDetails = tripQueryResult.rows[0];
-    const allIdeas = ideasQueryResult.rows;
-    const tripEvents = tripEventsQueryResult.rows;
+      const tripDetails = tripQueryResult.rows[0];
+      const allIdeas = ideasQueryResult.rows;
+      const tripEvents = tripEventsQueryResult.rows;
 
-    res.render('single-trip', {tripDetails, tripEvents, groupDetails, allIdeas});
-  });
+      res.render('single-trip', {tripDetails, tripEvents, groupDetails, allIdeas});
+    });
+  }
 } );
 
 app.post('/create-trip-event/:groupId/:tripId', (req, res) => {
