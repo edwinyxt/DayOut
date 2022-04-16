@@ -60,8 +60,8 @@
               <div class="row">
 
                 <% for (let i=0; i < allTrips.length; i +=1) { %>
-                  <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card">
+                  <div class="col-12 col-md-6 col-lg-4" style="padding:10px">
+                    <div class="card" style="background-color: rgba(211, 211, 211, 0.8)">
                       <div class="card-body">
                         <h5 class="card-title"><a href="/group/<%= groupDetails.id %>/trips/<%= allTrips[i].id %>">
                             <%= allTrips[i].start_date %>
@@ -70,6 +70,69 @@
                           <%= allTrips[i].start_time %> at <%= allTrips[i].location %>
                         </p>
                       </div>
+                      <div class="btn-group">
+
+                        <div class="modal fade" id="addtrip-modal-<%= allTrips[i].id %>">
+                          <div class="modal-dialog">
+
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h1>Edit Trip</h1>
+                              </div>
+                              <div class="modal-body">
+                                <form class="entry-form-container"
+                                  action="/trip/<%= groupDetails.id %>/<%= allTrips[i].id %>/edit?_method=PUT"
+                                  method="POST">
+                                  <div class="row">
+                                    <div class="row">
+                                      <div class="form-group">
+                                        <label for="description">Date: </label>
+                                        <input class="form-control" type="date" name="date" id="date"
+                                          value="<%= allTrips[i].start_date %>">
+                                      </div>
+                                    </div>
+
+                                    <div class="row">
+                                      <div class="form-group">
+                                        <label for="link">Start Time: </label>
+                                        <input class="form-control" type="time" name="start_time" id="start_time"
+                                          value="<%= allTrips[i].start_time %>">
+                                      </div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="form-group">
+                                        <label for="location">Meetup Location: </label>
+                                        <input class="form-control" name="location" id="location"
+                                          value="<%= allTrips[i].location %>">
+                                      </div>
+                                    </div>
+
+
+
+                                  </div>
+
+                                  <br><br>
+                                  <button type="submit" class="btn btn-secondary btn-block">Submit</button>
+                                </form>
+                              </div>
+                              <div class="modal-footer"></div>
+
+                            </div>
+                          </div>
+
+                        </div>
+
+
+                        <a href="#" data-toggle="modal" data-target="#addtrip-modal-<%= allTrips[i].id %>" class="btn"
+                          style="flex:none"><i class="fas fa-edit"></i></a>
+                        <form id="delete-button"
+                          action="/trip/<%= groupDetails.id %>/<%= allTrips[i].id %>/delete?_method=DELETE"
+                          method="POST">
+                          <button class="btn" type="submit"><i class="fa fa-trash-alt"></i></button>
+                        </form>
+                      </div>
+
+
                     </div>
                   </div>
                   <% } %>

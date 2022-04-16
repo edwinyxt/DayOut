@@ -183,16 +183,16 @@ app.post('/create-group', (req, res) => {
 
       .then((result) => {
         const groupId = result.rows[0].id;
-        const userData = [Number(req.cookies.userId), groupId];
+        const userData = [Number(req.cookies.userId), groupId, 't'];
 
         return pool.query(
-            'INSERT INTO users_groups (user_id, group_id) VALUES ($1, $2) RETURNING *', userData);
+            'INSERT INTO users_groups (user_id, group_id, user_is_admin) VALUES ($1, $2, $3) RETURNING *', userData);
       })
       .then((result) => {
         console.log(result.rows);
+        res.redirect('/groups');
       })
       .catch((error) => console.log(error.stack));
-  res.redirect('/groups');
 });
 
 app.get('/group/:id', checkAuth, groupAuth, (req, res) => {
@@ -364,10 +364,7 @@ app.get('/group/:id/trips', checkAuth, groupAuth, (req, res) => {
     groupDetails.id = groupId;
     const {loggedIn} = req.cookies;
     // res.render('planned-trips', {loggedIn, groupDetails});
-
     const tripsQuery = `select * from planned_trips where group_id=${groupId}`;
-
-
     // const ideasQuery = `select * from events_repository where group_id=${groupId}`;
     pool.query(tripsQuery, (tripsQueryError, tripsQueryResult) => {
       if (tripsQueryError) {
@@ -397,6 +394,35 @@ app.post('/create-trip/:id', (req, res) => {
       }).catch((error) => console.log(error.stack));
 
   // res.redirect(`/group/${groupId}/trips`);
+});
+
+app.put('/trip/:id/:tripId/edit', (req, res) => {
+  const groupId = Number(req.params.id);
+  const tripId = Number(req.params.tripId);
+  const tripData = req.body;
+  const inputData = [Number(req.cookies.userId), groupId, tripData.date, tripData.start_time, tripData.location];
+
+
+  pool
+      .query(`UPDATE planned_trips SET start_date = '${tripData.date}' , start_time = '${tripData.start_time}' , location = '${tripData.location}' where id = ${tripId}`)
+
+      .then((result) => {
+        console.log(result.rows);
+        res.redirect(`/group/${groupId}/trips`);
+      }).catch((error) => console.log(error.stack));
+});
+
+app.delete('/trip/:id/:tripId/delete', (req, res) => {
+  const tripId = Number(req.params.tripId);
+  const groupId = Number(req.params.id);
+  const deleteIdeaQuery = `DELETE FROM planned_trips WHERE id = ${tripId}`;
+  pool.query(deleteIdeaQuery, (deleteIdeaQueryError, deleteIdeaQueryResult) => {
+    if (deleteIdeaQueryError) {
+      console.log('error', deleteIdeaQueryError);
+    } else {
+      res.redirect(`/group/${groupId}/trips`);
+    }
+  });
 });
 
 app.get('/group/:id/trips/:tripId', checkAuth, groupAuth, (req, res) => {
