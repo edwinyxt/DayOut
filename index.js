@@ -284,10 +284,11 @@ app.post('/add-member/:id', (req, res) => {
       })
       .then((result) => {
         console.log(result.rows);
+        res.redirect(`/group/${groupId}/members`);
       })
       .catch((error) => console.log(error.stack));
 
-  res.redirect(`/group/${groupId}/members`);
+  // res.redirect(`/group/${groupId}/members`);
 });
 
 app.get('/group/:id/ideas', checkAuth, groupAuth, (req, res) => {
@@ -298,13 +299,14 @@ app.get('/group/:id/ideas', checkAuth, groupAuth, (req, res) => {
     const groupDetails = {};
     groupDetails.id = groupId;
 
-    const ideasQuery = `select e.id, e.user_id, e.description,e.location,e.start_date,e.end_date,e.link,users.username from events_repository e INNER JOIN users on users.id = e.user_id where e.group_id = ${groupId}`;
+    const ideasQuery = `select e.id, e.user_id, e.description,e.location,e.start_date,e.end_date,e.link,users.username from events_repository e INNER JOIN users on users.id = e.user_id where e.group_id = ${groupId} ORDER BY e.end_date ASC`;
     pool.query(ideasQuery, (ideasQueryError, ideasQueryResult) => {
       if (ideasQueryError) {
         console.log('error', ideasQueryError);
       } else {
         console.log(ideasQueryResult.rows);
         const allIdeas = ideasQueryResult.rows;
+
         res.render('ideas', {allIdeas, groupDetails});
       }
     });
@@ -352,9 +354,10 @@ app.post('/create-idea/:id', (req, res) => {
   pool
       .query('INSERT INTO events_repository (user_id, group_id, description, link, location, start_date, end_date) VALUES ($1, $2, $3,$4,$5,$6,$7) RETURNING id', inputData).then((result) => {
         console.log(result.rows);
+        res.redirect(`/group/${groupId}/ideas`);
       }).catch((error) => console.log(error.stack));
 
-  res.redirect(`/group/${groupId}/ideas`);
+  // res.redirect(`/group/${groupId}/ideas`);
 }),
 
 app.get('/group/:id/trips', checkAuth, groupAuth, (req, res) => {
@@ -366,7 +369,7 @@ app.get('/group/:id/trips', checkAuth, groupAuth, (req, res) => {
     groupDetails.id = groupId;
     // const tripsQuery = `select * from planned_trips where group_id=${groupId}`;
 
-    const tripsQuery = `select p.id, p.admin_user_id, p.location, p.start_date, p.start_time, users.username from planned_trips p INNER JOIN users on users.id = p.admin_user_id where group_id=${groupId}`;
+    const tripsQuery = `select p.id, p.admin_user_id, p.location, p.start_date, p.start_time, users.username from planned_trips p INNER JOIN users on users.id = p.admin_user_id where group_id=${groupId}and p.start_date >= NOW() ORDER BY p.start_date ASC`;
 
     pool.query(tripsQuery, (tripsQueryError, tripsQueryResult) => {
       if (tripsQueryError) {
@@ -437,7 +440,8 @@ app.get('/group/:id/trips/:tripId', checkAuth, groupAuth, (req, res) => {
     const groupDetails = {};
     groupDetails.id = groupId;
 
-    const tripQuery = `select * from planned_trips where id=${tripId}`;
+    // const tripQuery = `select * from planned_trips where id=${tripId}`;
+    const tripQuery = `select * from planned_trips p INNER JOIN users on users.id = p.admin_user_id  where p.id=${tripId}`;
     const allIdeasQuery = `select * from events_repository where group_id=${groupId}`;
     const tripEventsQuery = `select p.id, p.event_id, r.description, r.location, p.start_time, p.end_time, r.link from events_planned p INNER JOIN events_repository r on p.event_id = r.id where p.planned_trip_id = ${tripId}`;
 
@@ -474,9 +478,10 @@ app.post('/create-trip-event/:groupId/:tripId', (req, res) => {
   pool
       .query('INSERT INTO events_planned (planned_trip_id, event_id, start_time, end_time ) VALUES ($1, $2, $3,$4) RETURNING id', inputData).then((result) => {
         console.log(result.rows);
+        res.redirect(`/group/${groupId}/trips/${tripId}`);
       }).catch((error) => console.log(error.stack));
 
-  res.redirect(`/group/${groupId}/trips/${tripId}`);
+  // res.redirect(`/group/${groupId}/trips/${tripId}`);
 });
 
 app.put('/trip-event/:id/:tripId/:tripEventId/edit', (req, res) => {
@@ -513,19 +518,28 @@ app.delete('/trip-event/:id/:tripId/:tripEventId/delete', (req, res) => {
   });
 });
 
-app.get('/group/:id/archive', (req, res) => {
-  const results = Promise.all([
-    pool.query('SELECT * FROM planned_trips'),
-    pool.query('SELECT * FROM events_repository'),
+app.get('/group/:id/archive', checkAuth, groupAuth, (req, res) => {
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
+  } else {
+    const groupId = Number(req.params.id);
+    const groupDetails = {};
+    groupDetails.id = groupId;
+    // const tripsQuery = `select * from planned_trips where group_id=${groupId}`;
 
-  // allResults is an array of results whose elements correspond
-  // to the elements in the Promise.all parameter array
-  ]);
+    const tripsQuery = `select p.id, p.admin_user_id, p.location, p.start_date, p.start_time, users.username from planned_trips p INNER JOIN users on users.id = p.admin_user_id where group_id=${groupId}and p.start_date < NOW() ORDER BY p.start_date ASC`;
 
-  results.then((allResults) => {
-    // console.log(allResults, 'results');
-    allResults.forEach((e) => console.log(e.rows, 'the output'));
-  });
+    pool.query(tripsQuery, (tripsQueryError, tripsQueryResult) => {
+      if (tripsQueryError) {
+        console.log('error', tripsQueryError);
+      } else {
+        console.log(tripsQueryResult.rows);
+        const allTrips = tripsQueryResult.rows;
+
+        res.render('historical-trips', {allTrips, groupDetails});
+      }
+    });
+  }
 } );
 
 app.listen(3004);

@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS events_repository (
   description VARCHAR ( 255 ) NOT NULL,
   link VARCHAR ( 255 ) NOT NULL,
   location VARCHAR ( 255 ) NOT NULL,
-  start_date TEXT,
-  end_date TEXT
+  start_date DATE,
+  end_date DATE
 );
 
 CREATE TABLE IF NOT EXISTS planned_trips (
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS planned_trips (
   admin_user_id INTEGER REFERENCES users(id),
   group_id INTEGER REFERENCES groups(id),
   location VARCHAR ( 255 ) NOT NULL,
-  start_date TEXT,
+  start_date DATE,
   start_time TEXT
 );
 

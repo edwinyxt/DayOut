@@ -64,7 +64,7 @@
                     <div class="card" style="background-color: rgba(211, 211, 211, 0.8)">
                       <div class="card-body">
                         <h5 class="card-title"><a href="/group/<%= groupDetails.id %>/trips/<%= allTrips[i].id %>">
-                            <%= allTrips[i].start_date %>
+                            <%= allTrips[i].start_date.toDateString() %>
                           </a></h5>
                         <p class="card-text">
                           <%= allTrips[i].start_time %> at <%= allTrips[i].location %> <br><br>
@@ -92,7 +92,7 @@
                                         <div class="form-group">
                                           <label for="description">Date: </label>
                                           <input class="form-control" type="date" name="date" id="date"
-                                            value="<%= allTrips[i].start_date %>">
+                                            value="<%= allTrips[i].start_date.toLocaleDateString('sv') %>">
                                         </div>
                                       </div>
 

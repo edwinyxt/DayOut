@@ -14,8 +14,6 @@
                 <div class="row">
                   <div class="form-group">
                     <label for="description">Select an Idea: </label>
-
-
                     <select name="idea_id">
                       <% allIdeas.forEach((idea)=> { %>
                         <option value="<%= idea.id %>">
@@ -55,12 +53,12 @@
             </h1>
             <div class="container landing-page">
               <h4>
-                Date: <%= tripDetails.start_date %>
+                Date: <%= tripDetails.start_date.toDateString() %>
               </h4>
               <h4>
                 Meet <%= tripDetails.start_time %> at <%= tripDetails.location %>
               </h4>
-              <span>Planner: </span>
+              <span>Planner: <%= tripDetails.username %> </span>
               <br><br>
               <div class="table-responsive">
                 <table class="table">
@@ -167,10 +165,10 @@
 
                 </table>
               </div>
-
-              <a href="#" data-toggle="modal" data-target="#createactivity-modal" class="btn btn-primary">Add
-                Activity</a>
-
+              <% if (tripDetails.start_date>=Date.now()) { %>
+                <a href="#" data-toggle="modal" data-target="#createactivity-modal" class="btn btn-primary">Add
+                  Activity</a>
+                <% } %>
 
             </div>
           </main>

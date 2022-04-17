@@ -80,10 +80,10 @@
                         <%= allIdeas[i].location %>
                       </td>
                       <td>
-                        <%= allIdeas[i].start_date %>
+                        <%= allIdeas[i].start_date.toDateString() %>
                       </td>
                       <td>
-                        <%= allIdeas[i].end_date %>
+                        <%= allIdeas[i].end_date.toDateString() %>
                       </td>
 
                       <td><a href="<%= allIdeas[i].link %>" style="color: darkslategray">
@@ -131,7 +131,8 @@
                                         <div class="form-group">
                                           <label for="start-date">Start date: </label>
                                           <input class="form-control" type="date" name="sdate" id="sdate"
-                                            min="2015/01/01" value="<%= allIdeas[i].start_date %>">
+                                            min="2015/01/01"
+                                            value="<%= allIdeas[i].start_date.toLocaleDateString('sv') %>">
                                         </div>
                                       </div>
 
@@ -139,7 +140,8 @@
                                         <div class="form-group">
                                           <label for="end-date">End date: </label>
                                           <input class="form-control" type="date" name="edate" id="edate"
-                                            min="2015/01/01" value="<%= allIdeas[i].end_date %>">
+                                            min="2015/01/01"
+                                            value="<%= allIdeas[i].end_date.toLocaleDateString('sv') %>">
                                         </div>
                                       </div>
                                     </div>
