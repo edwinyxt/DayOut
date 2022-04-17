@@ -46,20 +46,22 @@ const checkAuth = (req, res, next) => {
     // test the value of the cookie
     if (req.cookies.loggedInHash === hash) {
       req.isUserLoggedIn = true;
+      const userNameQuery = `select username from users where id = ${req.cookies.userId}`;
+      pool.query(userNameQuery, (userNameQueryError, userNameQueryResult) => {
+        if (userNameQueryError) {
+          console.log('error', userNameQueryError);
+        } else {
+          const userNameResult = userNameQueryResult.rows[0];
+          app.locals.username = userNameResult.username;
+          app.locals.userid = Number(req.cookies.userId);
+          next();
+        }
+      });
+    } else {
+      next();
     }
-
-    const userNameQuery = `select username from users where id = ${req.cookies.userId}`;
-
-    pool.query(userNameQuery, (userNameQueryError, userNameQueryResult) => {
-      if (userNameQueryError) {
-        console.log('error', userNameQueryError);
-      } else {
-        const userNameResult = userNameQueryResult.rows[0];
-        app.locals.username = userNameResult.username;
-        app.locals.userid = Number(req.cookies.userId);
-        next();
-      }
-    });
+  } else {
+    next();
   }
 };
 
@@ -362,19 +364,18 @@ app.get('/group/:id/trips', checkAuth, groupAuth, (req, res) => {
     const groupId = Number(req.params.id);
     const groupDetails = {};
     groupDetails.id = groupId;
-    const {loggedIn} = req.cookies;
-    // res.render('planned-trips', {loggedIn, groupDetails});
-    const tripsQuery = `select * from planned_trips where group_id=${groupId}`;
-    // const ideasQuery = `select * from events_repository where group_id=${groupId}`;
+    // const tripsQuery = `select * from planned_trips where group_id=${groupId}`;
+
+    const tripsQuery = `select p.id, p.admin_user_id, p.location, p.start_date, p.start_time, users.username from planned_trips p INNER JOIN users on users.id = p.admin_user_id where group_id=${groupId}`;
+
     pool.query(tripsQuery, (tripsQueryError, tripsQueryResult) => {
       if (tripsQueryError) {
         console.log('error', tripsQueryError);
       } else {
         console.log(tripsQueryResult.rows);
         const allTrips = tripsQueryResult.rows;
-        const {loggedIn} = req.cookies;
-        console.log('logged in?', loggedIn);
-        res.render('planned-trips', {allTrips, groupDetails, loggedIn});
+
+        res.render('planned-trips', {allTrips, groupDetails});
       }
     });
   }
@@ -432,15 +433,13 @@ app.get('/group/:id/trips/:tripId', checkAuth, groupAuth, (req, res) => {
     console.log(req.params);
 
     const tripId = Number(req.params.tripId);
-
-
     const groupId = Number(req.params.id);
     const groupDetails = {};
     groupDetails.id = groupId;
 
     const tripQuery = `select * from planned_trips where id=${tripId}`;
     const allIdeasQuery = `select * from events_repository where group_id=${groupId}`;
-    const tripEventsQuery = `select * from events_planned INNER JOIN events_repository on events_planned.event_id = events_repository.id where events_planned.planned_trip_id = ${tripId}`;
+    const tripEventsQuery = `select p.id, p.event_id, r.description, r.location, p.start_time, p.end_time, r.link from events_planned p INNER JOIN events_repository r on p.event_id = r.id where p.planned_trip_id = ${tripId}`;
 
     const results = Promise.all([
       pool.query(tripQuery),
@@ -450,8 +449,8 @@ app.get('/group/:id/trips/:tripId', checkAuth, groupAuth, (req, res) => {
 
     results.then((allResults) => {
       const [tripQueryResult, ideasQueryResult, tripEventsQueryResult] = allResults;
-      console.log(tripQueryResult.rows, '1');
-      console.log(ideasQueryResult.rows, '2');
+      // console.log(tripQueryResult.rows, '1');
+      // console.log(ideasQueryResult.rows, '2');
 
       const tripDetails = tripQueryResult.rows[0];
       const allIdeas = ideasQueryResult.rows;
@@ -478,6 +477,40 @@ app.post('/create-trip-event/:groupId/:tripId', (req, res) => {
       }).catch((error) => console.log(error.stack));
 
   res.redirect(`/group/${groupId}/trips/${tripId}`);
+});
+
+app.put('/trip-event/:id/:tripId/:tripEventId/edit', (req, res) => {
+  const tripId = Number(req.params.tripId);
+  const groupId = Number(req.params.id);
+  const groupDetails = {};
+  groupDetails.id = groupId;
+  const tripEventId = Number(req.params.tripEventId);
+  const activityData = req.body;
+
+  pool
+      .query(`UPDATE events_planned SET event_id = '${activityData.idea_id}' , start_time = '${activityData.start_time}' , end_time = '${activityData.end_time}' where id = ${tripEventId}`)
+
+      .then((result) => {
+        console.log(result.rows);
+        res.redirect(`/group/${groupId}/trips/${tripId}`);
+      }).catch((error) => console.log(error.stack));
+});
+
+app.delete('/trip-event/:id/:tripId/:tripEventId/delete', (req, res) => {
+  const tripId = Number(req.params.tripId);
+  const groupId = Number(req.params.id);
+  const groupDetails = {};
+  groupDetails.id = groupId;
+  const tripEventId = Number(req.params.tripEventId);
+
+  const deleteEventQuery = `DELETE FROM events_planned WHERE id = ${tripEventId}`;
+  pool.query(deleteEventQuery, (deleteEventQueryError, deleteEventQueryResult) => {
+    if (deleteEventQueryError) {
+      console.log('error', deleteEventQueryError);
+    } else {
+      res.redirect(`/group/${groupId}/trips/${tripId}`);
+    }
+  });
 });
 
 app.get('/group/:id/archive', (req, res) => {

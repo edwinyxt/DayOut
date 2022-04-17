@@ -1,9 +1,8 @@
 <%- include ('partials/head') %>
 
   <body>
-    <div class="modal fade" id="creategroup-modal">
+    <div class="modal fade" id="createactivity-modal">
       <div class="modal-dialog">
-
         <div class="modal-content">
           <div class="modal-header">
             <h1>Add Activity</h1>
@@ -24,31 +23,21 @@
                         </option>
                         <% }); %>
                     </select>
-
-
-
                   </div>
                 </div>
-
-
-
                 <div class="row">
                   <div class="form-group">
                     <label for="start-date">Start time: </label>
                     <input class="form-control" type="time" name="start_time" id="start_time">
                   </div>
                 </div>
-
                 <div class="row">
                   <div class="form-group">
                     <label for="end-date">End time: </label>
                     <input class="form-control" type="time" name="end_time" id="end_time">
                   </div>
                 </div>
-
-
               </div>
-
               <br><br>
               <button type="submit" class="btn btn-secondary btn-block">Submit</button>
             </form>
@@ -57,28 +46,22 @@
 
         </div>
       </div>
-
     </div>
     <%- include ('partials/main-navbar') %>
       <div class="container d-flex flex-column flex-md-row">
-
         <%- include ('partials/group-navbar') %>
-
           <main class="ps-0 ps-md-5 flex-grow-1">
             <h1>Welcome to Group <%= groupname %>
             </h1>
-
             <div class="container landing-page">
-              <h3>
-                <%= tripDetails.start_date %>
-              </h3>
-              <h3>
-                <%= tripDetails.start_time %>
-              </h3>
-              <h3>
-                <%= tripDetails.location %>
-              </h3>
-              <br>
+              <h4>
+                Date: <%= tripDetails.start_date %>
+              </h4>
+              <h4>
+                Meet <%= tripDetails.start_time %> at <%= tripDetails.location %>
+              </h4>
+              <span>Planner: </span>
+              <br><br>
               <div class="table-responsive">
                 <table class="table">
                   <tr>
@@ -87,7 +70,8 @@
                     <th>Start time</th>
                     <th>End time</th>
                     <th>Link</th>
-                    <th id="delete-heading">Delete</th>
+                    <th></th>
+                    <th id="delete-heading"></th>
                   </tr>
 
                   <% for (let i=0; i < tripEvents.length; i +=1) { %>
@@ -108,20 +92,84 @@
 
                       <td><a href="<%= tripEvents[i].link %>" style="color: darkslategray">
                           Details
-                        </a></td>
+                        </a>
+                      </td>
                       <td>
-                        <form id="delete-button" action="/note/<%= allIdeas[i].id %>/delete?_method=DELETE"
+
+                        <div class="modal fade" id="createactivity-modal-<%= tripEvents[i].id %>">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h1>Edit Activity</h1>
+                              </div>
+                              <div class="modal-body">
+                                <form class="entry-form-container"
+                                  action="/trip-event/<%= groupDetails.id %>/<%= tripDetails.id %>/<%= tripEvents[i].id %>/edit?_method=PUT"
+                                  method="POST">
+                                  <div class="row">
+                                    <div class="row">
+                                      <div class="form-group">
+                                        <label for="description">Select an Idea: </label>
+                                        <select name="idea_id">
+                                          <% allIdeas.forEach((idea)=> { %>
+                                            <% if (idea.id===tripEvents[i].event_id) { %>
+                                              <option value="<%= idea.id %>" selected>
+                                                <%= idea.description %>
+                                              </option>
+                                              <% } else { %>
+                                                <option value="<%= idea.id %>">
+                                                  <%= idea.description %>
+                                                </option>
+                                                <% } %>
+                                                  <% }); %>
+                                        </select>
+                                      </div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="form-group">
+                                        <label for="start-date">Start time: </label>
+                                        <input class="form-control" type="time" name="start_time" id="start_time"
+                                          value="<%= tripEvents[i].start_time %>">
+                                      </div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="form-group">
+                                        <label for="end-date">End time: </label>
+                                        <input class="form-control" type="time" name="end_time" id="end_time"
+                                          value="<%= tripEvents[i].end_time %>">
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <br><br>
+                                  <button type="submit" class="btn btn-secondary btn-block">Submit</button>
+                                </form>
+                              </div>
+                              <div class="modal-footer"></div>
+
+                            </div>
+                          </div>
+                        </div>
+                        <a href="#" data-toggle="modal" data-target="#createactivity-modal-<%= tripEvents[i].id %>"
+                          class="btn btn-sm btn-outline"><i class="fas fa-edit"></i></a>
+
+
+                      </td>
+                      <td>
+                        <form id="delete-button"
+                          action="/trip-event/<%= groupDetails.id %>/<%= tripDetails.id %>/<%= tripEvents[i].id %>/delete?_method=DELETE"
                           method="POST">
                           <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
                         </form>
                       </td>
+
                     </tr>
                     <% } %>
 
                 </table>
               </div>
 
-              <a href="#" data-toggle="modal" data-target="#creategroup-modal" class="btn btn-primary">Add Activity</a>
+              <a href="#" data-toggle="modal" data-target="#createactivity-modal" class="btn btn-primary">Add
+                Activity</a>
 
 
             </div>
