@@ -176,6 +176,39 @@ app.get('/groups', checkAuth, (req, res) => {
   };
 });
 
+app.get('/user-profile', checkAuth, (req, res) => {
+  const {userId} = req.cookies;
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
+  } else {
+    const userQuery = `select * from users where id= ${userId}`;
+    pool.query(userQuery, (userQueryError, userQueryResult) => {
+      if (userQueryError) {
+        console.log('error', userQueryError);
+      } else {
+        console.log(userQueryResult.rows);
+        const userProfile = userQueryResult.rows[0];
+        res.render('user-profile', {userProfile});
+      }
+    });
+  };
+});
+
+app.put('/user-profile/:userid/edit', (req, res) => {
+  const userId = Number(req.params.userid);
+  const userData = req.body;
+  // const inputData = [userData.email, userData.username, userData.interests];
+  // console.log(userId, inputData);
+
+  pool
+      .query(`UPDATE users SET email = '${userData.email}' , username = '${userData.username}' , interests = '${userData.interests}' where id = ${userId}`)
+
+      .then((result) => {
+        console.log(result.rows);
+        res.redirect(`/groups`);
+      }).catch((error) => console.log(error.stack));
+});
+
 app.post('/create-group', (req, res) => {
   const groupData = req.body;
   const inputData = [groupData.name, groupData.description];
@@ -228,9 +261,9 @@ app.get('/group/:id/members', checkAuth, groupAuth, (req, res) => {
     const groupDetails = {};
     groupDetails.id = groupId;
 
-    const membersQuery = `select * from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId}`;
+    const membersQuery = `select * from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId} ORDER BY username asc`;
 
-    const nonMembersQuery = `select email,username from users except select email,username from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId};`;
+    const nonMembersQuery = `select email,lower(username) as username from users except select email,username from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId} ORDER by username asc`;
 
     const results = Promise.all([
       pool.query(membersQuery),
@@ -261,6 +294,35 @@ app.get('/group/:id/members', checkAuth, groupAuth, (req, res) => {
   }
 
   // res.render('group-members', {loggedIn});
+});
+
+app.get('/group/:id/profile', checkAuth, groupAuth, (req, res) => {
+  // const {loggedIn} = req.cookies;
+  if (req.isUserLoggedIn === false) {
+    res.redirect('/login');
+  } else {
+    const groupId = Number(req.params.id);
+    const groupDetails = {};
+    groupDetails.id = groupId;
+
+    const membersQuery = `select * from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId}`;
+
+    const nonMembersQuery = `select email,username from users except select email,username from users INNER JOIN users_groups ON users.id = users_groups.user_id WHERE users_groups.group_id = ${groupId};`;
+
+    const results = Promise.all([
+      pool.query(membersQuery),
+      pool.query(nonMembersQuery),
+    ]);
+
+    results.then((allResults) => {
+      const [membersQueryResult, nonMembersQueryResult] = allResults;
+
+      const members = membersQueryResult.rows;
+      const nonMembers = nonMembersQueryResult.rows;
+
+      res.render('group-profile', {members, nonMembers, groupDetails});
+    } );
+  }
 });
 
 app.post('/add-member/:id', (req, res) => {
@@ -441,7 +503,7 @@ app.get('/group/:id/trips/:tripId', checkAuth, groupAuth, (req, res) => {
     groupDetails.id = groupId;
 
     // const tripQuery = `select * from planned_trips where id=${tripId}`;
-    const tripQuery = `select * from planned_trips p INNER JOIN users on users.id = p.admin_user_id  where p.id=${tripId}`;
+    const tripQuery = `select p.id,p.start_date,p.start_time,p.location, u.username from planned_trips p INNER JOIN users u on u.id = p.admin_user_id  where p.id=${tripId}`;
     const allIdeasQuery = `select * from events_repository where group_id=${groupId}`;
     const tripEventsQuery = `select p.id, p.event_id, r.description, r.location, p.start_time, p.end_time, r.link from events_planned p INNER JOIN events_repository r on p.event_id = r.id where p.planned_trip_id = ${tripId}`;
 
@@ -471,7 +533,8 @@ app.post('/create-trip-event/:groupId/:tripId', (req, res) => {
   const groupId = Number(req.params.groupId);
   const activityData = req.body;
 
-  console.log(activityData);
+  // console.log(activityData);
+  console.log(tripId);
 
   const inputData = [tripId, activityData.idea_id, activityData.start_time, activityData.end_time];
 
@@ -481,7 +544,7 @@ app.post('/create-trip-event/:groupId/:tripId', (req, res) => {
         res.redirect(`/group/${groupId}/trips/${tripId}`);
       }).catch((error) => console.log(error.stack));
 
-  // res.redirect(`/group/${groupId}/trips/${tripId}`);
+  res.redirect(`/group/${groupId}/trips/${tripId}`);
 });
 
 app.put('/trip-event/:id/:tripId/:tripEventId/edit', (req, res) => {

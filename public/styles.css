@@ -2,10 +2,15 @@ html,
 body {
   width: 100%;
   height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .entry-form {
   padding-top: 50px;
+}
+
+.logout-btn {
+  border: none !important;
 }
 
 #entry-form-body {
@@ -21,8 +26,11 @@ body {
   background: white;
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 0 10px 0 black;
-  border: solid black 1px;
+  border-style: solid;
+  border-width: 1px;
+  min-width: 30px;
+  /* box-shadow: 0 0 10px 0 black;
+  border: solid black 1px; */
 }
 
 #single-note-text {
@@ -55,7 +63,8 @@ body {
 }
 
 .landing-page {
-  padding-top: 50px;
+  padding-top: 20px;
+  /* border-top: 2px solid grey; */
 }
 
 .single-note-wrapper {

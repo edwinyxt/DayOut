@@ -36,9 +36,6 @@
                           <input class="form-control" name="location" id="location">
                         </div>
                       </div>
-
-
-
                     </div>
 
                     <br><br>
@@ -52,16 +49,17 @@
 
           </div>
 
-          <main class="ps-0 ps-md-5">
-            <h1>Welcome to Group <%= groupname %>
+          <main class="ps-0 ps-md-5 flex-grow-1">
+            <h1>
+              <%= groupname %>
             </h1>
             <div class="container landing-page">
-              <h3 style="text-align:center">Past Trips</h3>
+              <h3 style="text-align:left">Past Trips</h3>
               <div class="row">
 
                 <% for (let i=0; i < allTrips.length; i +=1) { %>
-                  <div class="col-12 col-md-6 col-lg-4" style="padding:10px">
-                    <div class="card" style="background-color: rgba(211, 211, 211, 0.8)">
+                  <div class="col-12 col-md-6 col-lg-6" style="padding:10px">
+                    <div class="card" style="background-color: white ; border-color:black; min-width: 30px;">
                       <div class="card-body">
                         <h5 class="card-title"><a href="/group/<%= groupDetails.id %>/trips/<%= allTrips[i].id %>">
                             <%= allTrips[i].start_date.toDateString() %>

@@ -11,12 +11,11 @@
         <li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" id="profile-dropdown" role="button"
             data-bs-toggle="dropdown">Hi, <%= username %></a>
           <ul class="dropdown-menu">
-            <li><a href="#" class="dropdown-item">Edit Profile</a></li>
+            <li><a href="/user-profile" class="dropdown-item">Edit Profile</a></li>
 
             <li>
               <form action="/logout?_method=DELETE" method="POST">
-
-                <button type="submit" class="btn btn-outline-dark btn btn-md">Logout</button>
+                <button type="submit" class="btn btn-outline-dark btn btn-md logout-btn">Logout</button>
               </form>
             </li>
 

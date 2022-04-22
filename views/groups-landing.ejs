@@ -49,12 +49,12 @@
             <li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" id="profile-dropdown"
                 role="button" data-bs-toggle="dropdown">Hi, <%= username %></a>
               <ul class="dropdown-menu">
-                <li><a href="#" class="dropdown-item">Edit Profile</a></li>
+                <li><a href="/user-profile" class="dropdown-item">Edit Profile</a></li>
 
                 <li>
                   <form action="/logout?_method=DELETE" method="POST">
 
-                    <button type="submit" class="btn btn-outline-dark btn btn-md">Logout</button>
+                    <button type="submit" class="btn btn-outline-dark btn btn-md logout-btn">Logout</button>
                   </form>
                 </li>
 
@@ -73,13 +73,13 @@
       <h1 style="text-align:center">Your Groups</h1>
       <div class="row">
         <% for (let i=0; i < allGroups.length; i +=1) { %>
-          <div class="col-12 col-md-6 col-lg-4" style="background-color: rgba(211, 211, 211, 0.8) ; padding:10px">
+          <div class="col-12 col-md-6 col-lg-4" style="padding:10px">
             <div class="card">
               <div class="img-container">
                 <img src="https://picsum.photos/200" class="card-img-top" alt="A Group">
 
               </div>
-              <div class="card-body">
+              <div class="card-body" style="background-color: rgba(211, 211, 211, 0.8)">
                 <h5 class="card-title"><a href="/group/<%= allGroups[i].group_id %>">
                     <%= allGroups[i].name %>
                   </a></h5>
