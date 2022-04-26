@@ -3,7 +3,7 @@ import pg from 'pg';
 import methodOverride from 'method-override';
 import cookieParser from 'cookie-parser';
 import jsSHA from 'jssha';
-
+const PORT = process.env.PORT || 3004;
 const SALT = 'lets hang out';
 const {Pool} = pg;
 const pgConnectionConfigs = {
@@ -605,4 +605,4 @@ app.get('/group/:id/archive', checkAuth, groupAuth, (req, res) => {
   }
 } );
 
-app.listen(3004);
+app.listen(PORT);
