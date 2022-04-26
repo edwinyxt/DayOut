@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3004;
 const SALT = 'lets hang out';
 const {Pool} = pg;
 
+let pgConnectionConfigs;
 if (process.env.DATABASE_URL) {
   // pg will take in the entire value and use it to connect
   pgConnectionConfigs = {
@@ -16,8 +17,7 @@ if (process.env.DATABASE_URL) {
     },
   };
 } else {
-  // this is the same value as before
-  const pgConnectionConfigs = {
+  pgConnectionConfigs = {
     user: 'edwinyxt',
     host: 'localhost',
     database: 'dayout',
@@ -25,7 +25,12 @@ if (process.env.DATABASE_URL) {
   };
 }
 
-
+// const pgConnectionConfigs = {
+//   user: 'edwinyxt',
+//   host: 'localhost',
+//   database: 'dayout',
+//   port: 5432, // Postgres server always runs on this port by default
+// };
 const pool = new Pool(pgConnectionConfigs);
 
 const app = express();
