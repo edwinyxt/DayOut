@@ -9,6 +9,7 @@ Bootstrap, PostgreSQL, NodeJS, Express
 - Profile and display your interests to the group
 - Collaborate on trip activities ideation
 - Plan for trips and inform group on time and location
+- Schedule a trip using members' activity ideas posted
 
 #### Future enhancements
 - Members upvoting on ideas page
