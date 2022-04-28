@@ -26,6 +26,8 @@ Bootstrap, PostgreSQL, NodeJS, Express
 Deployed URL: https://tranquil-beyond-17092.herokuapp.com/
 
 #### Post mortem notes
+https://gist.github.com/upieez/0794b2d6a2727132c043e1380c4169df
+
 What went well? Please share a link to the specific code.
 - Used column and dbname aliases for join queries. Avoided duplicate column naming when 2 tables are joined
 - Learnt to use modals and responsive navbars
@@ -39,4 +41,4 @@ What were the biggest challenges you faced? Please share a link to the specific 
 What would you do differently next time?
 - More feature enhancements
 - Cleaner and more modern design/UX
-- How to do data sorting on client side instead or querying db each time with SQL sort param
+- How to do data sorting on client side instead of querying db each time with SQL sort param
