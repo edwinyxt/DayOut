@@ -19,6 +19,7 @@ Bootstrap, PostgreSQL, NodeJS, Express
 - Chat and commenting on future trips planned
 - Ability to add/edit personal and group profile pics
 - Ability to add photo albums to completed trips for reminiscing memories
+- Form validations
 
 #### Entity Relationship Diagram
 ![Database ER diagram (crow's foot)](https://user-images.githubusercontent.com/91788744/165343937-8b76f7c7-dc18-48a8-8eb5-66b971db3a8e.jpeg)
@@ -38,3 +39,4 @@ What were the biggest challenges you faced? Please share a link to the specific 
 What would you do differently next time?
 - More feature enhancements
 - Cleaner and more modern design/UX
+- How to do data sorting on client side instead or querying db each time with SQL sort param
