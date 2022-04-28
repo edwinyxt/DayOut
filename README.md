@@ -23,3 +23,18 @@ Bootstrap, PostgreSQL, NodeJS, Express
 #### Entity Relationship Diagram
 ![Database ER diagram (crow's foot)](https://user-images.githubusercontent.com/91788744/165343937-8b76f7c7-dc18-48a8-8eb5-66b971db3a8e.jpeg)
 Deployed URL: https://tranquil-beyond-17092.herokuapp.com/
+
+#### Post mortem notes
+What went well? Please share a link to the specific code.
+- Used column and dbname aliases for join queries. Avoided duplicate column naming when 2 tables are joined
+- Learnt to use modals and responsive navbars
+
+What were the biggest challenges you faced? Please share a link to the specific code.
+- Getting CSS to work the way I want
+- Date and time formatting
+- Getting 2 auth routes custom middleware to work concurrently without error. Users need to have login auth + group membership check to be allowed access to specific group
+- Too many 'layers' in certain routes, eg: app.put('/trip-event/:id/:tripId/:tripEventId/edit') ; maybe theres is better way to handle this?
+
+What would you do differently next time?
+- More feature enhancements
+- Cleaner and more modern design/UX
